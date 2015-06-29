@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-Slack - Zabbix Integration WebHook
+Slack - Zabbix Integration Webhook
 A Slack incoming webhook to show events from Zabbix.
 
 Usage: slack_zabbix.py <to> <subject> <message>
