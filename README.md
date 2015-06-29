@@ -29,21 +29,21 @@ example config:
 ### Zabbix
 #### Install the script
 Log into the command line and place `slack_zabbix.py` in the alertscripts folder, i.e. `/usr/lib/zabbix/alertscripts`
-```shell
+```
 # cd /usr/lib/zabbix/alertscripts
 # wget https://raw.githubusercontent.com/ssplatt/zabbix-slack-alertscript/master/slack_zabbix.py
 # chmod 755 slack_zabbix.py
 ```
 
 Edit `slack_zabbix.py` and copy the Slack Webhook URL into `hookurl = ""`
-```shell
+```
 # vi slack_zabbix.py
 
 hookurl = "https://hooks.slack.com/services/ABC123/DEF456/ABCDEF123456"
 ```
 
 You may need to install extra python modules.
-```shell
+```
 # yum install python-pip
 # pip install httplib2 json sys
 ```
