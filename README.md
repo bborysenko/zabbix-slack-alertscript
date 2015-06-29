@@ -73,7 +73,7 @@ Configure the action. Set the name to anything you'd like. The subject should ju
 ```
 {TRIGGER.SEVERITY} :: {HOST.NAME1} :: {TRIGGER.NAME} :: https://zabbix.site.tld/tr_events.php?triggerid={TRIGGER.ID}&eventid={EVENT.ID} :: https://zabbix.site.tld/acknow.php?eventid={EVENT.ID}&triggerid={TRIGGER.ID}&backurl=dashboard.php
 ```
-' :: ' is used as a delimiter but also keeps the string readable in case you decide to change back to the original `slack.sh` or another script. If you want to change the delimiter, you'll need to update `slack_zabbix.py` as well. If you change the order of the macros, you'll also need to update `slack_zabbix.py` to reflect the changes.
+' :: ' is used as a delimiter but also keeps the string readable in case the fallback text is used instead of the fully formatted version. If you want to change the delimiter, you'll need to update `slack_zabbix.py` to match. If you change the order of the macros, you'll also need to update `slack_zabbix.py`, as well.
 
 ![zabbix action config](https://raw.githubusercontent.com/ssplatt/zabbix-slack-alertscript/master/web_assets/zabbix_action.png)
 
