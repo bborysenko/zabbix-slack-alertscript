@@ -83,7 +83,7 @@ Configure the Operations tab to send a message to a single user or a group.
 
 ## Testing
 
-Assuming that you have set a valid Slack web-hook URL within your "slack.sh" file, you can execute the script manually (as opposed to via Zabbix) from Bash on a terminal:
+You can run the `slack_zabbix.py` script manually from the command line with the format `slack_zabbix.py <to> <subject> <message>`.
 
 ```
 $  ./slack_zabbix.py '#alerts' 'PROBLEM' 'Average :: Zabbix server :: Zabbix discoverer processes more than 75% busy :: http://host.domain.tld/tr_events.php?triggerid=1&eventid=1 :: http://host.domain.tld/acknow.php?eventid=1&triggerid=1&backurl=dashboard.php'
