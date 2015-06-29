@@ -1,75 +1,94 @@
-Zabbix Slack AlertScript
-========================
+# Zabbix Slack AlertScript
 
+## About
 
-About
------
-This is simply a Bash script that uses the custom alert script functionality within [Zabbix](http://www.zabbix.com/) along with the incoming web-hook feature of [Slack](https://slack.com/) that I got a chance to write since I could not find any already existing/similar scripts.
+This script will push events from [Zabbix](http://www.zabbix.com/) and display them in [Slack](https://slack.com/). This is an updated version of [ericoc's](https://github.com/ericoc) [zabbix-slack-alertscript](https://github.com/ericoc/zabbix-slack-alertscript). It is written in python and tested on Zabbix 2.4 and CentOS 7.1.
 
-This definitely works with Zabbix 2.0 or greater (including 2.2 and 2.4) and thanks to Leslie at AspirationHosting for confirming that it works on 1.8.2 as well! 
+---
 
-Thanks to [Paul Reeves](https://github.com/pdareeves/) for the hint that Slack changed their API/URLs recently as well as to [Igor Shishkin](https://github.com/teran) for the ability to message users as well as channels!
+![slack](https://raw.githubusercontent.com/ssplatt/zabbix-slack-alertscript/master/web_assets/slack_ss.png)
 
+---
 
-Installation
-------------
+## Installation
 
-### The script itself
+### Slack
 
-The ["slack.sh" script](https://github.com/ericoc/zabbix-slack-alertscript/raw/master/slack.sh) needs to be placed in the "AlertScriptsPath" directory that is specified within the Zabbix servers' configuration file (zabbix_server.conf) and must be executable by the user (usually "zabbix") running the zabbix_server binary on the Zabbix server before restarting the Zabbix server software:
+Log in to your Slack account and create a new incoming webhook: https://my.slack.com/services/new/incoming-webhook
 
-	[root@zabbix ~]# grep AlertScriptsPath /etc/zabbix/zabbix_server.conf
-	### Option: AlertScriptsPath
-	AlertScriptsPath=/usr/local/share/zabbix/alertscripts
+1. Copy the Webhook Url. You will need to paste this into the slack_zabbix.py script later
+2. Set the Channel where you'd like the alerts to go (i.e. #alerts)
+3. Set the bot username you'd like to use (i.e. Zabbix-bot)
+4. Upload an icon for the service
+	* i.e. https://raw.githubusercontent.com/ssplatt/zabbix-slack-alertscript/master/web_assets/zabbix_logo.png
 
-	[root@zabbix ~]# ls -lh /usr/local/share/zabbix/alertscripts/slack.sh
-	-rwxr-xr-x 1 root root 1.4K Dec 27 13:48 /usr/local/share/zabbix/alertscripts/slack.sh
+example config:
 
-Feel free to edit the user name at the top of the script while making sure that you specify your correct Slack.com incoming web-hook URL:
+![slack_config](https://raw.githubusercontent.com/ssplatt/zabbix-slack-alertscript/master/web_assets/slack_webhook_setup.png)
 
-	# Slack incoming web-hook URL and user name
-	url='https://hooks.slack.com/services/QW3R7Y/D34DC0D3/BCADFGabcDEF123'
-	username='Zabbix'
+### Zabbix
+#### Install the script
+Log into the command line and place `slack_zabbix.py` in the alertscripts folder, i.e. `/usr/lib/zabbix/alertscripts`
+```shell
+# cd /usr/lib/zabbix/alertscripts
+# wget https://raw.githubusercontent.com/ssplatt/zabbix-slack-alertscript/master/slack_zabbix.py
+# chmod 755 slack_zabbix.py
+```
 
+Edit `slack_zabbix.py` and copy the Slack Webhook URL into `hookurl = ""`
+```shell
+# vi slack_zabbix.py
 
-### At Slack.com
+hookurl = "https://hooks.slack.com/services/ABC123/DEF456/ABCDEF123456"
+```
 
-An incoming web-hook integration must be created within your Slack.com account which can be done at https://my.slack.com/services/new/incoming-webhook as shown below:
+You may need to install extra python modules.
+```shell
+# yum install python-pip
+# pip install httplib2 json sys
+```
+#### Configure Zabbix
+##### Media Type Configuration
+In the WebUI, create a new Media Type for Slack. You can either clone an existing media type or click `Create Media Type`.
 
-![Slack.com Incoming Web-hook Integration](http://pictures.ericoc.com/github/newapi/slack-integration.png "Slack.com Incoming Web-hook Integration")
+![zabbix_admin_media](https://raw.githubusercontent.com/ssplatt/zabbix-slack-alertscript/master/web_assets/zabbix_admin_mediatypes.png)
 
-Given the above screenshot, the incoming web-hook URL would be "https://hooks.slack.com/services/QW3R7Y/D34DC0D3/BCADFGabcDEF123".
+Set the name to `Slack`, type to `Script`, Script Name to `slack_zabbix.py`, and mark it enabled.
 
-### Within the Zabbix web interface
+![zabbix_admin_media_config](https://raw.githubusercontent.com/ssplatt/zabbix-slack-alertscript/master/web_assets/zabbix_media_config.png)
 
-When logged in to the Zabbix servers web interface as a user with super-administrator privileges, click the "Create media type" button on the "Media types" sub-tab of the "Administration" tab.
+##### User configuration
+Configure users to have the Slack media type. I chose to modify the default admin user to only have the Slack media type.
 
-You need to create a media type with the name "Slack", type of "Script", script name of "slack.sh" that is enabled like so:
+![zabbix users config](https://raw.githubusercontent.com/ssplatt/zabbix-slack-alertscript/master/web_assets/zabbix_user_admin.png)
 
-![Zabbix Media Type](http://pictures.ericoc.com/github/zabbix-mediatype.png "Zabbix Media Type")
+![zabbix users media config](https://raw.githubusercontent.com/ssplatt/zabbix-slack-alertscript/master/web_assets/zabbix_user_media.png)
 
-Then, create a "Slack" user on the "Users" sub-tab of the "Administration" tab within the Zabbix servers web interface and specify this users "Media" as the "Slack" media type that was just created with the Slack.com channel ("#alerts" in the example) or user name (such as "@ericoc") that you want messages to go to in the "Send to" field as seen below:
+##### Action configuration
+Create a new action to send the alerts. You can clone an existing action or click `Create Action`.
 
-![Zabbix User](http://pictures.ericoc.com/github/zabbix-user.png "Zabbix User")
+![zabbix trigger actions](https://raw.githubusercontent.com/ssplatt/zabbix-slack-alertscript/master/web_assets/zabbix_config_actions.png)
 
-Finally, an action can then be created on the "Actions" sub-tab of the "Configuration" tab within the Zabbix servers web interface to notify the Zabbix "Slack" user ensuring that the "Subject" is "PROBLEM" for "Default message" and "RECOVERY" should you choose to send a "Recovery message".
-Additionally, you can have multiple different Zabbix users with "Slack" media types that each notify unique Slack users or channels upon different Zabbix actions.
+Configure the action. Set the name to anything you'd like. The subject should just be `{TRIGGER.STATUS}` which will be substituted by `PROBLEM` or `OK`. For the Message, set something like:
+```
+{TRIGGER.SEVERITY} :: {HOST.NAME1} :: {TRIGGER.NAME} :: https://zabbix.site.tld/tr_events.php?triggerid={TRIGGER.ID}&eventid={EVENT.ID} :: https://zabbix.site.tld/acknow.php?eventid={EVENT.ID}&triggerid={TRIGGER.ID}&backurl=dashboard.php
+```
+' :: ' is used as a delimiter but also keeps the string readable in case you decide to change back to the original `slack.sh` or another script. If you want to change the delimiter, you'll need to update `slack_zabbix.py` as well. If you change the order of the macros, you'll also need to update `slack_zabbix.py` to reflect the changes.
 
-Keeping the messages short is probably a good idea - use something such as "{TRIGGER.NAME} - {HOSTNAME} ({IPADDRESS})" for the contents of each message.
+![zabbix action config](https://raw.githubusercontent.com/ssplatt/zabbix-slack-alertscript/master/web_assets/zabbix_action.png)
+
+Configure the Operations tab to send a message to a single user or a group.
+
+![zabbix action operations](https://raw.githubusercontent.com/ssplatt/zabbix-slack-alertscript/master/web_assets/zabbix_operations.png)
 
 ## Testing
 
 Assuming that you have set a valid Slack web-hook URL within your "slack.sh" file, you can execute the script manually (as opposed to via Zabbix) from Bash on a terminal:
 
-	$ bash slack.sh '@ericoc' PROBLEM 'Oh no! Something is wrong!'
+```
+$  ./slack_zabbix.py '#alerts' 'PROBLEM' 'Average :: Zabbix server :: Zabbix discoverer processes more than 75% busy :: http://host.domain.tld/tr_events.php?triggerid=1&eventid=1 :: http://host.domain.tld/acknow.php?eventid=1&triggerid=1&backurl=dashboard.php'
+```
 
-Alerting a specific user name results in the message actually coming from the "slackbot" user using a sort-of "spoofed" user name within the message. A channel alert is sent as you would normally expect from whatever user name you specify in "slack.sh":
-
-![Slack Testing](http://pictures.ericoc.com/github/slack-example.png "Slack Testing")
-
-
-More Information
-----------------
+## More Information
  * [Slack incoming web-hook functionality](https://my.slack.com/services/new/incoming-webhook)
- * [Zabbix (2.2) custom alertscripts documentation](https://www.zabbix.com/documentation/2.2/manual/config/notifications/media/script)
  * [Zabbix (2.4) custom alertscripts documentation](https://www.zabbix.com/documentation/2.4/manual/config/notifications/media/script)
