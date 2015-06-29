@@ -1,4 +1,4 @@
-# Zabbix Slack AlertScript
+# Zabbix-Slack AlertScript
 
 ## About
 
