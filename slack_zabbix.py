@@ -83,6 +83,7 @@ def main():
 
     # post to slack
     payload = json.dumps({
+        "channel": channel,
         "attachments": attachment
     })
     
